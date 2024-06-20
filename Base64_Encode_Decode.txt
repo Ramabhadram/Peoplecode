@@ -1,0 +1,33 @@
+REM ** What would you like to encode?;
+Local string &textToEncode = "Hello World 🤔";
+
+REM ** Pointer to Java encoder;
+Local JavaObject &encoder = GetJavaClass("java.util.Base64").getEncoder();
+
+REM ** Pointer to Java decoder;
+rem Local JavaObject &decoder = GetJavaClass("java.util.Base64").getDecoder();
+
+REM ** Be sure to change the character set to match your source;
+Local JavaObject &bytes = CreateJavaObject("java.lang.String", &textToEncode).getBytes("UTF-8");
+
+Local string &result = &encoder.encodeToString(&bytes);
+rem Local string &result2 = &decoder.decodeToString(&bytes);
+REM ** print the result;
+MessageBox(0, "encoding ", 0, 0, &result);
+
+Local Crypt &cryEncode, &cryDecode;
+Local string &encodeResult, &decodeResult;
+
+/* ENCODE */
+&cryEncode = CreateObject("Crypt");
+&cryEncode.Open("BASE64_ENCODE");
+&cryEncode.UpdateData("Hello World 🤔");
+&encodeResult = &cryEncode.Result;
+
+/* DECODE */
+&cryDecode = CreateObject("Crypt");
+&cryDecode.Open("BASE64_DECODE");
+&cryDecode.UpdateData(&encodeResult);
+&decodeResult = &cryDecode.Result;
+MessageBox(0, "encoding ", 0, 0, &encodeResult);
+MessageBox(0, "decoding ", 0, 0, &decodeResult);
