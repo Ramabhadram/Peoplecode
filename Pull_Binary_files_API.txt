@@ -1,0 +1,62 @@
+Local string &url, &response, &filePath, &filename, &readline;
+Local string &status;
+Local string &jsonString;
+
+/*
+Sample JSON metadata end point that server provides to fetch the attachments.
+{
+    "fileName": "sample.docx",
+    "downloadURL": "http://192.168.1.212:8080/download/d39c0ddd-2638-4ef0-957b-84ce8334afb4",
+    "fileType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "fileSize": 0
+}
+*/
+
+&url = "http://192.168.1.212:8080/getFileBinary/d39c0ddd-2638-4ef0-957b-84ce8334afb4";
+MessageBox(0, "", 0, 0, "URL for Attachments available in the DB : " | &url);
+
+/* FTP File Path which is defined in the URL definition */
+&filePath = GetURL(URL.API_CMP_FTP);
+
+&filename = &filePath | "somefile.txt";
+MessageBox(0, "", 0, 0, "full Path in the FTP server including file name : " | &filename);
+
+&response = %IntBroker.ConnectorRequestUrl(&url);
+MessageBox(0, "", 0, 0, "Api called and got Response : " | &response);
+
+/* Actual File Path which is present in the app server */
+Local string &path = "C:\PeopleSoft\Process_Scheduler_Reports" | "\sample.docx";
+/* Create a file in the app server local directory */
+Local File &MYFILE = GetFile(&path, "W", %FilePath_Absolute);
+/* Since the Response is in base64MIME binary save it to file using the WriteBase64StringToBinary method*/
+&MYFILE.WriteBase64StringToBinary(&response);
+&MYFILE.Close();
+
+/* Copy the file from the app server to the FTP path specified in the URL definition */
+Local number &retCodeGet, &retCodePut;
+/* The file namme extension should be specific to file type fetched from API */
+Local string &UniqueName = "sample.docx";
+&retCodePut = PutAttachment(URL.API_CMP_FTP, &UniqueName, &path);
+If &retCodePut = %Attachment_Success Then /*&retCodePut = 0 if succeed */
+   WinMessage("PutAttachment Success : " | &retCodePut);
+Else
+   WinMessage("Error occurred in PutAttachment : " | &retCodePut);
+End-If;
+
+/* Copy the file(or Rename the file if same name then it overrides) from the FTP path to the another FTP path specified in the URL definition.
+Here the somefile.txt is the actual file present in the FTP path and 1.txt is the filename specified for
+process to identity and if both match in GetAttachment and PutAttachment it will copy the file with the &UniueName
+provided in the PutAttachment function - contents in the file will be copied and renamed as per below code */
+&retCodeGet = GetAttachment(URL.API_CMP_FTP, "somefile.txt", "1.txt");
+If &retCodeGet = %Attachment_Success Then
+   &filename = "1.txt";
+   &UniqueName = "Example_test2.txt";
+   &retCodePut = PutAttachment(URL.API_CMP_FTP, &UniqueName, &filename);
+   If &retCodePut = %Attachment_Success Then
+      WinMessage("Put Attachment Success: " | &retCodePut);
+   Else
+      WinMessage("Error occurred in PutAttachment: " | &retCodePut);
+   End-If;
+Else
+   WinMessage("Error occurred in GetAttachment: " | &retCodeGet);
+End-If;
