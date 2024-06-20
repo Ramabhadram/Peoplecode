@@ -1,0 +1,13 @@
+Sending and Receiving MTOM-encoded binary data
+PeopleSoft supports the MTOM protocol for sending and receiving binary data using service operations. 
+While you can send and receive binary data using SOAP, doing so requires that you Base64-encode the data, which can increase message size by 33 percent or more. 
+The MTOM protocol enables you to send and receive binary data in its original binary form, without any increase in size due to encoding.
+For sending or receiving MTOM-encoded binary data, we have to use message segments to store the data. 
+The SegmentContentType property of the message object is used to set or read the content type of each message segment.
+
+
+On the weblogic webserver, in the integrationGateway.properties file enable the MTOM Listening Connectors. 
+ig.MTOM.enablePeopleSoftServiceListeningConnector=true
+ig.MTOM.enableHttpListeningConnector=true
+
+Bounce the webserver after making this change.
